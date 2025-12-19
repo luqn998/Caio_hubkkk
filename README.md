@@ -1,4 +1,4 @@
---// Caio_hub • Reset + Block Respawn 8s + 25 Clone Desync
+--// Caio_hub • Reset + Block Respawn 8s + 25 Clone Desync com Contador
 --// LocalScript / Executor
 
 local Players = game:GetService("Players")
@@ -8,6 +8,7 @@ local BLOCK_TIME = 8
 local TOTAL_CLONES = 25
 local busy = false
 local blockConn
+local blockRespawn = false
 
 --================ GUI =================
 local gui = Instance.new("ScreenGui", game.CoreGui)
@@ -68,11 +69,14 @@ btn.MouseButton1Click:Connect(function()
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then busy = false return end
 
-    -- BLOQUEIA RESPAWN
+    -- BLOQUEIA RESPAWN AUTOMÁTICO
+    blockRespawn = true
     if blockConn then blockConn:Disconnect() end
     blockConn = lp.CharacterAdded:Connect(function(c)
-        task.wait()
-        c:Destroy()
+        if blockRespawn then
+            task.wait()
+            c:Destroy()
+        end
     end)
 
     -- MATA E DELETA
@@ -82,16 +86,23 @@ btn.MouseButton1Click:Connect(function()
         lp.Character:Destroy()
     end
 
-    -- ESPERA 8s SEM RESPAWN
-    task.wait(BLOCK_TIME)
+    -- CONTADOR VISÍVEL NO BOTÃO
+    for i = BLOCK_TIME, 0, -1 do
+        btn.Text = "Respawn em: "..i
+        task.wait(1)
+    end
 
-    -- LIBERA RESPAWN
+    -- LIBERA RESPAWN AUTOMÁTICO
+    blockRespawn = false
     if blockConn then
         blockConn:Disconnect()
         blockConn = nil
     end
 
-    -- FORÇA RESPAWN
+    -- RESTAURA TEXTO DO BOTÃO
+    btn.Text = "RESET + DESYNC"
+
+    -- FORÇA RESPAWN SEGURO
     lp:LoadCharacter()
     local newChar = lp.CharacterAdded:Wait()
 
