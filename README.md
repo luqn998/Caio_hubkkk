@@ -1,6 +1,4 @@
 --// Caio_hub • Reset + Block Respawn 8s + 25 Clone Desync com Contador
---// LocalScript / Executor
-
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer
 
@@ -10,7 +8,7 @@ local busy = false
 local blockConn
 local blockRespawn = false
 
---================ GUI =================
+-- GUI
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "Caio_hub_OneButton"
 
@@ -41,7 +39,7 @@ btn.TextSize = 16
 btn.TextColor3 = Color3.fromRGB(255,255,255)
 Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
 
---================ CLONE =================
+-- Função clone
 local function createClone(char, offset)
     local clone = char:Clone()
     clone.Name = "DESYNC_CLONE"
@@ -58,18 +56,17 @@ local function createClone(char, offset)
     end
 end
 
---================ BOTÃO =================
+-- Botão
 btn.MouseButton1Click:Connect(function()
     if busy then return end
     busy = true
 
     local char = lp.Character
     if not char then busy = false return end
-
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then busy = false return end
 
-    -- BLOQUEIA RESPAWN AUTOMÁTICO
+    -- Bloqueia respawns automáticos
     blockRespawn = true
     if blockConn then blockConn:Disconnect() end
     blockConn = lp.CharacterAdded:Connect(function(c)
@@ -79,45 +76,38 @@ btn.MouseButton1Click:Connect(function()
         end
     end)
 
-    -- MATA E DELETA
+    -- Mata e deleta
     hum.Health = 0
     task.wait()
     if lp.Character then
         lp.Character:Destroy()
     end
 
-    -- CONTADOR VISÍVEL NO BOTÃO
+    -- Contagem regressiva
     for i = BLOCK_TIME, 0, -1 do
         btn.Text = "Respawn em: "..i
         task.wait(1)
     end
 
-    -- LIBERA RESPAWN AUTOMÁTICO
+    -- Desbloqueia respawns antes de LoadCharacter
     blockRespawn = false
     if blockConn then
         blockConn:Disconnect()
         blockConn = nil
     end
-
-    -- RESTAURA TEXTO DO BOTÃO
     btn.Text = "RESET + DESYNC"
 
-    -- FORÇA RESPAWN SEGURO
+    -- Força respawn seguro
     lp:LoadCharacter()
     local newChar = lp.CharacterAdded:Wait()
-
     task.wait(0.2)
 
-    -- 1 CLONE IMEDIATO (DESYNC INICIAL)
+    -- 1 clone inicial
     createClone(newChar, Vector3.new(0,0,0))
 
-    -- 25 CLONES NO RESPAWN
+    -- 25 clones no respawn
     for i = 1, TOTAL_CLONES do
-        local offset = Vector3.new(
-            math.random(-6,6),
-            0,
-            math.random(-6,6)
-        )
+        local offset = Vector3.new(math.random(-6,6),0,math.random(-6,6))
         createClone(newChar, offset)
         task.wait(0.03)
     end
